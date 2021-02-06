@@ -1,0 +1,7 @@
+scikit-image
+numpy
+pydmd
+scikit-learn
+seaborn
+opencv-python
+cvxpy
