@@ -6,6 +6,7 @@ import argparse
 import time
 
 from sklearn.decomposition import PCA
+from sklearn import random_projection
 
 
 IGNORE_FILES = ['.DS_Store']
@@ -20,6 +21,9 @@ def pca_dim_reduction(train_imgs, test_imgs, n_features):
     img_matrix_test = test_imgs.transpose()
     pca = PCA(n_components=n_features, svd_solver='randomized', whiten=True).fit(img_matrix_train)
     pca.fit(img_matrix_train)
+    #pca_evr = pca.explained_variance_ratio_
+    #print(np.cumsum(pca_evr))
+    #breakpoint()
     resized_matrix_train = pca.transform(img_matrix_train)
     resized_matrix_test = pca.transform(img_matrix_test)
     resized_matrix_train = resized_matrix_train.transpose()
@@ -27,13 +31,23 @@ def pca_dim_reduction(train_imgs, test_imgs, n_features):
 
     return resized_matrix_train, resized_matrix_test
 
+# TODO: finish test with random features
+def random_features(D_train): # input is total training matrix
+
+    transformer = random_projection.GaussianRandomProjection()
+    X_new = transformer.fit_transform(np.transpose(D_train))
+    print(X_new.shape)
+    
+    return np.transpose(X_new)
+
+
 def prep_train_test(train_path, test_path, options: dict):
     init_data_matrix = True
     TrainSet = {}
     class_label_train = []
     TestSet = {}
     class_label_test = []
-    test_file = []
+    test_files = []
 
     dims = options['dims'] #either a tuple for downsampling or an integer for pca
 
@@ -87,7 +101,7 @@ def prep_train_test(train_path, test_path, options: dict):
                 continue
             class_label_test.append(folder)
             img_path = test_path + folder + os.sep + img_file  # absolute path to image
-            test_file.append(img_path)
+            test_files.append(img_path)
             X_orig = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
 
             if options['feature_selection'] == 'downsampling':
@@ -114,10 +128,15 @@ def prep_train_test(train_path, test_path, options: dict):
     if options['feature_selection'] == 'pca':
         D_train, D_test = pca_dim_reduction(D_train, D_test, dims)
 
+    elif options['feature_selection'] == 'random':
+        print("before proj: ", D_train.shape)
+        D_train = random_features(D_train)
+        breakpoint()
+
     TrainSet['X'] = D_train
     TrainSet['y'] = np.array(class_label_train)
     TestSet['X'] = D_test
     TestSet['y'] = np.array(class_label_test)
-    TestSet['files'] = test_file
+    TestSet['files'] = test_files
 
     return TrainSet, TestSet

@@ -5,11 +5,11 @@ import sys
 IGNORE_FILES = ['.DS_Store']
 random.seed(30)
 
-### Run this script for splitting data into train and test set ###
+### Run this script for splitting into train and test set ###
 
 def split_train_test(data_folder, split_fraction: float):
 
-    test_path = os.path.join(os.getcwd(), "test")
+    test_path = os.path.join(os.getcwd(), "test2")
     train_path = data_folder
 
     if not os.path.isdir(train_path):
@@ -23,10 +23,10 @@ def split_train_test(data_folder, split_fraction: float):
             os.mkdir(os.path.join(test_path, dir))
 
         subject_path = os.path.join(train_path, dir)
-        l = len(os.listdir(subject_path))
+        l = round(len(os.listdir(subject_path)), -1)
 
-        for i in range(1, l): # haven't tested this part
-            if i % int(len(os.listdir(subject_path)) * (1 - split_fraction)) == 0:
+        for i in range(1, l):
+            if (l * split_fraction) % i == 0:
                 k = random.choice(os.listdir(os.path.join(train_path, dir)))
                 os.rename(os.path.join(train_path, dir, k),
                           os.path.join(test_path, dir, k))
